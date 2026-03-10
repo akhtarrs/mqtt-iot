@@ -80,11 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Wait 5 seconds before subscribing to topics to ensure stable connection
     Future.delayed(const Duration(seconds: 5), () {
       if (_isConnected && _items.isNotEmpty) {
-        print('Subscribing to ${ _items.length} topics after connection stabilization...');
+        debugPrint('Subscribing to ${_items.length} topics after connection stabilization...');
         for (final item in _items) {
           _mqttService.subscribe(item.topic);
         }
-        print('All topics subscribed successfully');
+        debugPrint('All topics subscribed successfully');
       }
     });
   }
@@ -129,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      print('Error loading settings: $e');
+      debugPrint('Error loading settings: $e');
       // Set default settings on error
       setState(() {
         _mqttSettings = MqttSettings(
@@ -168,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (Platform.isAndroid) {
       final status = await Permission.notification.request();
       if (status.isGranted) {
-        print('Notification permission granted');
+        debugPrint('Notification permission granted');
       } else {
-        print('Notification permission denied');
+        debugPrint('Notification permission denied');
       }
     }
   }
@@ -245,12 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return List.generate(12, (index) => chars[random.nextInt(chars.length)]).join();
   }
 
-  Future<void> _saveItemsToPrefs(List<AlertNotificationItem> items) async {
-    final prefs = await SharedPreferences.getInstance();
-    final itemsJson = items.map((item) => json.encode(item.toJson())).toList();
-    await prefs.setStringList('alert_notification_items', itemsJson);
-  }
-
   Future<void> _loadItems() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -262,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList();
       });
     } catch (e) {
-      print('Error loading items: $e');
+      debugPrint('Error loading items: $e');
       setState(() {
         _items = [];
       });
@@ -300,17 +294,15 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_isConnected && _items.isNotEmpty) {
         Future.delayed(const Duration(seconds: 5), () {
           if (_isConnected) {
-            print('Subscribing to newly added topics...');
+            debugPrint('Subscribing to newly added topics...');
             for (final item in _items) {
               _mqttService.subscribe(item.topic);
             }
-            print('New topics subscribed successfully');
-          }
+            debugPrint('New topics subscribed successfully');          }
         });
       }
     }
   }
-
   Future<void> _onConnectPressed() async {
     if (_isConnecting) return;
 
@@ -450,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha((0.1 * 255).round()),
               blurRadius: 10,
               offset: const Offset(0, -2),
             )

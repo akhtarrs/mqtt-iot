@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import '../models/mqtt_settings.dart';
@@ -63,7 +64,7 @@ class MqttService {
       _onConnected?.call();
       return true;
     } catch (e) {
-      print('MQTT Connection error: $e');
+      debugPrint('MQTT Connection error: $e');
       _isConnected = false;
       _onDisconnected?.call();
       return false;
@@ -76,13 +77,13 @@ class MqttService {
       _isConnected = false;
       _onDisconnected?.call();
     } catch (e) {
-      print('MQTT Disconnect error: $e');
+      debugPrint('MQTT Disconnect error: $e');
     }
   }
 
   void publish(String topic, String message) {
     if (!_isConnected || _client == null) {
-      print('Client is not connected');
+      debugPrint('Client is not connected');
       return;
     }
 
@@ -97,27 +98,27 @@ class MqttService {
 
   void subscribe(String topic) {
     if (!_isConnected || _client == null) {
-      print('MQTT: Cannot subscribe to $topic - client not connected');
+      debugPrint('MQTT: Cannot subscribe to $topic - client not connected');
       return;
     }
 
-    print('MQTT: Subscribing to topic: $topic');
+    debugPrint('MQTT: Subscribing to topic: $topic');
     _client!.subscribe(topic, MqttQos.atLeastOnce);
   }
 
   void _onConnectedHandler() {
-    print('MQTT: Connection established successfully');
+    debugPrint('MQTT: Connection established successfully');
     _isConnected = true;
     _onConnected?.call();
   }
 
   void _onDisconnectedHandler() {
-    print('MQTT: Connection lost/disconnected');
+    debugPrint('MQTT: Connection lost/disconnected');
     _isConnected = false;
     _onDisconnected?.call();
   }
 
   void _onSubscribedHandler(String topic) {
-    print('MQTT: Successfully subscribed to topic: $topic');
+    debugPrint('MQTT: Successfully subscribed to topic: $topic');
   }
 }

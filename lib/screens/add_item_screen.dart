@@ -7,7 +7,7 @@ import '../models/alert_notification_item.dart';
 class AddItemScreen extends StatefulWidget {
   final AlertNotificationItem? existingItem;
 
-  const AddItemScreen({Key? key, this.existingItem}) : super(key: key);
+  const AddItemScreen({super.key, this.existingItem});
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
@@ -102,9 +102,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Error saving item: File C:\Users\akhta\AppData\Local\Programs\Microsoft VS Code\61b3d0ab13\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.',
-          ),
+          content: Text('Error saving item: $error'),
         ),
       );
     }
@@ -128,7 +126,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.18) : Colors.white,
+          color: isSelected ? activeColor.withAlpha((0.18 * 255).round()) : Colors.white,
           border: Border.all(
             color: isSelected ? activeColor : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -136,7 +134,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha((0.05 * 255).round()),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
