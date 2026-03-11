@@ -38,13 +38,15 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   bool _isConnected = false;
   late MqttService _mqttService;
   MqttSettings? _mqttSettings;
   bool _isConnecting = false;
   List<AlertNotificationItem> _items = [];
   late FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
+  late final AnimationController _addButtonController;
+  late final Animation<double> _addButtonFloat;
 
   @override
   void initState() {
@@ -53,9 +55,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _mqttService.setOnConnected(_handleConnected);
     _mqttService.setOnDisconnected(_handleDisconnected);
     _mqttService.setOnMessage(_handleMqttMessage);
+    _addButtonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+    _addButtonFloat = Tween<double>(begin: -3.0, end: 6.0).animate(
+      CurvedAnimation(
+        parent: _addButtonController,
+        curve: Curves.easeInOut,
+      ),
+    );
     _initializeNotifications();
     _loadSettings();
     _loadItems();
+  }
+
+  @override
+  void dispose() {
+    _addButtonController.dispose();
+    super.dispose();
   }
 
   @override
@@ -460,11 +478,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: _onSettingsPressed,
               ),
               // Add Button
-              IconButton(
-                icon: const Icon(Icons.add_circle),
-                iconSize: 48,
-                tooltip: 'Add Device',
-                onPressed: _onAddPressed,
+              AnimatedBuilder(
+                animation: _addButtonFloat,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _addButtonFloat.value),
+                    child: child,
+                  );
+                },
+                child: GestureDetector(
+                  onTap: _onAddPressed,
+                  child: Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFD5EDF9),
+                          Color(0xFF57C7F9),
+                          Color(0xFF08F2B7),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((0.18 * 255).round()),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 34,
+                    ),
+                  ),
+                ),
               ),
               // Connect Button
               IconButton(
