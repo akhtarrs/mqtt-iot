@@ -23,7 +23,32 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MQTT IoT',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF57C7F9),
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: const Color(0xFF57C7F9),
+          secondary: const Color(0xFF08F2B7),
+          surface: Colors.white,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF6FBFE),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          iconTheme: IconThemeData(color: Color(0xFF0F172A)),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: const Color(0xFF0F172A),
+          contentTextStyle: const TextStyle(color: Colors.white),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          behavior: SnackBarBehavior.floating,
+        ),
         useMaterial3: true,
       ),
       home: const HomeScreen(),
@@ -352,130 +377,205 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       appBar: AppBar(
         title: const Text('MQTT IoT'),
-        centerTitle: true,
-        elevation: 2,
       ),
-      body: Column(
-        children: [
-          // Connection Status
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: _isConnected ? Colors.green.shade50 : Colors.grey.shade50,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _isConnected ? Icons.cloud_done : Icons.cloud_off,
-                  size: 24,
-                  color: _isConnected ? Colors.green : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _isConnected ? 'Connected' : 'Disconnected',
-                  style: TextStyle(
-                    color: _isConnected ? Colors.green : Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFD5EDF9),
+              Color(0xFFF6FBFE),
+              Color(0xFFE8FBF5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          // Items List
-          Expanded(
-            child: _items.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_circle_outline,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No alerts or notifications added yet',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tap the + button to add your first item',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
-                        ),
-                      ],
+        ),
+        child: Column(
+          children: [
+            // Connection Status
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.06 * 255).round()),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: _isConnected
+                          ? const Color(0xFF08F2B7).withAlpha((0.2 * 255).round())
+                          : Colors.grey.withAlpha((0.15 * 255).round()),
+                      shape: BoxShape.circle,
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: Icon(
-                            item.type == ItemType.alert
-                                ? Icons.warning
-                                : Icons.notifications,
-                            color: item.type == ItemType.alert
-                                ? Colors.orange
-                                : Colors.blue,
-                            size: 32,
-                          ),
-                          title: Text(item.title),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Topic: ${item.topic}'),
-                              if (item.description != null)
-                                Text('Description: ${item.description}'),
-                              Text(
-                                item.type == ItemType.alert ? 'Alert' : 'Notification',
-                                style: TextStyle(
-                                  color: item.type == ItemType.alert
-                                      ? Colors.orange
-                                      : Colors.blue,
-                                  fontWeight: FontWeight.bold,
+                    child: Icon(
+                      _isConnected ? Icons.cloud_done : Icons.cloud_off,
+                      size: 20,
+                      color: _isConnected ? const Color(0xFF08F2B7) : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    _isConnected ? 'Connected' : 'Disconnected',
+                    style: TextStyle(
+                      color: _isConnected ? const Color(0xFF0F766E) : Colors.grey,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Items List
+            Expanded(
+              child: _items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha((0.06 * 255).round()),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
                                 ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.add_circle_outline,
+                              size: 44,
+                              color: Color(0xFF57C7F9),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No alerts or notifications added yet',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: const Color(0xFF0F172A),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Tap the + button to add your first item',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey.shade600,
+                                ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha((0.06 * 255).round()),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _editItem(item),
+                          child: ListTile(
+                            leading: Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: item.type == ItemType.alert
+                                    ? Colors.orange.withAlpha((0.2 * 255).round())
+                                    : const Color(0xFF57C7F9)
+                                        .withAlpha((0.2 * 255).round()),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                item.type == ItemType.alert
+                                    ? Icons.warning
+                                    : Icons.notifications,
+                                color: item.type == ItemType.alert
+                                    ? Colors.orange
+                                    : const Color(0xFF57C7F9),
+                                size: 22,
+                              ),
+                            ),
+                            title: Text(
+                              item.title,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Topic: ${item.topic}'),
+                                if (item.description != null)
+                                  Text('Description: ${item.description}'),
+                                Text(
+                                  item.type == ItemType.alert ? 'Alert' : 'Notification',
+                                  style: TextStyle(
+                                    color: item.type == ItemType.alert
+                                        ? Colors.orange
+                                        : const Color(0xFF57C7F9),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: _AnimatedIconButton(
+                              icon: Icons.edit,
+                              tooltip: 'Edit',
+                              onTap: () => _editItem(item),
+                            ),
+                            onTap: () => _editItem(item),
                           ),
-                          onTap: () => _editItem(item),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha((0.1 * 255).round()),
-              blurRadius: 10,
+              color: Colors.black.withAlpha((0.08 * 255).round()),
+              blurRadius: 16,
               offset: const Offset(0, -2),
             )
           ],
         ),
         child: BottomAppBar(
           elevation: 0,
+          color: Colors.white,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Settings Button
-              IconButton(
-                icon: const Icon(Icons.settings),
+              _AnimatedIconButton(
+                icon: Icons.settings,
                 tooltip: 'Settings',
-                onPressed: _onSettingsPressed,
+                onTap: _onSettingsPressed,
               ),
               // Add Button
               AnimatedBuilder(
@@ -486,7 +586,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     child: child,
                   );
                 },
-                child: GestureDetector(
+                child: _AnimatedPress(
                   onTap: _onAddPressed,
                   child: Container(
                     width: 58,
@@ -519,24 +619,94 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
               // Connect Button
-              IconButton(
-                icon: _isConnecting
+              _AnimatedIconButton(
+                tooltip: _isConnecting ? 'Connecting...' : 'Connect',
+                onTap: _onConnectPressed,
+                child: _isConnecting
                     ? const SizedBox(
                         width: 24,
                         height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Icon(
                         _isConnected ? Icons.cloud_done : Icons.cloud_off,
                         color: _isConnected ? Colors.green : Colors.red,
                       ),
-                tooltip: _isConnecting ? 'Connecting...' : 'Connect',
-                onPressed: _onConnectPressed,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedIconButton extends StatelessWidget {
+  const _AnimatedIconButton({
+    required this.onTap,
+    this.icon,
+    this.tooltip,
+    this.child,
+  });
+
+  final VoidCallback onTap;
+  final IconData? icon;
+  final String? tooltip;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonChild = child ??
+        Icon(
+          icon,
+          color: const Color(0xFF0F172A),
+        );
+    return _AnimatedPress(
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip ?? '',
+        waitDuration: const Duration(milliseconds: 400),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(child: buttonChild),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedPress extends StatefulWidget {
+  const _AnimatedPress({
+    required this.child,
+    required this.onTap,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  State<_AnimatedPress> createState() => _AnimatedPressState();
+}
+
+class _AnimatedPressState extends State<_AnimatedPress> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.85 : 1.0,
+          duration: const Duration(milliseconds: 120),
+          child: widget.child,
         ),
       ),
     );
