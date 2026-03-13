@@ -176,26 +176,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               clientId: parts[2],
             );
           });
+        } else {
+          debugPrint('Error loading settings: Invalid settings format');
+          setState(() {
+            _mqttSettings = null;
+          });
         }
-      } else {
-        // Create default settings if none exist
-        setState(() {
-          _mqttSettings = MqttSettings(
-            host: 'test.mosquitto.org',
-            port: 1883,
-            clientId: _generateDefaultClientId(),
-          );
-        });
-      }
+      } 
     } catch (e) {
       debugPrint('Error loading settings: $e');
-      // Set default settings on error
       setState(() {
-        _mqttSettings = MqttSettings(
-          host: 'test.mosquitto.org',
-          port: 1883,
-          clientId: _generateDefaultClientId(),
-        );
+        _mqttSettings = null;
       });
     }
   }
@@ -368,6 +359,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (_isConnected) {
       _mqttService.disconnect();
     } else {
+      if (_mqttSettings == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please set MQTT server from Settings before connecting.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
       setState(() {
         _isConnecting = true;
       });
