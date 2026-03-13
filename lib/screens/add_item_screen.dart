@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-import '../models/alert_notification_item.dart';
+import '../models/mqtt_item.dart';
 
 class AddItemScreen extends StatefulWidget {
-  final AlertNotificationItem? existingItem;
+  final MqttItem? existingItem;
 
   const AddItemScreen({super.key, this.existingItem});
 
@@ -18,8 +18,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final TextEditingController _topicController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _payloadController = TextEditingController();
 
   bool get isEditing => widget.existingItem != null;
+  bool get _isDeviceSelected => _selectedType == ItemType.device;
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       _topicController.text = item.topic;
       _titleController.text = item.title;
       _descriptionController.text = item.description ?? '';
+      _payloadController.text = item.payload ?? '';
     }
   }
 
@@ -38,6 +41,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _topicController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
+    _payloadController.dispose();
     super.dispose();
   }
 
@@ -45,6 +49,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final topic = _topicController.text.trim();
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
+    final payload = _payloadController.text.trim();
 
     if (topic.isEmpty || title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,23 +58,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
       return;
     }
 
+    if (_isDeviceSelected && payload.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill payload to send')),
+      );
+      return;
+    }
+
     final id =
         widget.existingItem?.id ??
         DateTime.now().millisecondsSinceEpoch.toString();
-    final item = AlertNotificationItem(
+    final item = MqttItem(
       id: id,
       type: _selectedType,
       topic: topic,
       title: title,
       description: description.isEmpty ? null : description,
+      payload: payload.isEmpty ? null : payload,
     );
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getStringList('alert_notification_items') ?? <String>[];
+      final raw = prefs.getStringList(mqttItemsStorageKey) ?? <String>[];
       final items = raw
           .map(
-            (s) => AlertNotificationItem.fromJson(
+            (s) => MqttItem.fromJson(
               json.decode(s) as Map<String, dynamic>,
             ),
           )
@@ -87,7 +100,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
 
       final store = items.map((e) => json.encode(e.toJson())).toList();
-      await prefs.setStringList('alert_notification_items', store);
+        await prefs.setStringList(mqttItemsStorageKey, store);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -375,8 +388,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     TextField(
                       controller: _titleController,
                       decoration: InputDecoration(
-                        labelText: 'Title',
-                        hintText: 'Enter title for this item',
+                        labelText: _isDeviceSelected ? 'Device Name' : 'Title',
+                        hintText: _isDeviceSelected
+                            ? 'Enter device name'
+                            : 'Enter title for this item',
                         prefixIcon: const Icon(Icons.title),
                         filled: true,
                         fillColor: const Color(0xFFF8FBFE),
@@ -392,8 +407,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       minLines: 1,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        labelText: 'Description (Optional)',
-                        hintText: 'Enter description',
+                        labelText: _isDeviceSelected
+                            ? 'Device Description'
+                            : 'Description (Optional)',
+                        hintText: _isDeviceSelected
+                            ? 'Enter device description'
+                            : 'Enter description',
                         prefixIcon: const Icon(Icons.description),
                         filled: true,
                         fillColor: const Color(0xFFF8FBFE),
@@ -403,6 +422,25 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                       ),
                     ),
+                    if (_isDeviceSelected) ...[
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _payloadController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          labelText: 'Payload to send',
+                          hintText: 'Enter payload for the device',
+                          prefixIcon: const Icon(Icons.send),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FBFE),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,

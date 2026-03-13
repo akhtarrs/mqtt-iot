@@ -10,7 +10,7 @@ import 'screens/settings_screen.dart';
 import 'screens/add_item_screen.dart';
 import 'services/mqtt_service.dart';
 import 'models/mqtt_settings.dart';
-import 'models/alert_notification_item.dart';
+import 'models/mqtt_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late MqttService _mqttService;
   MqttSettings? _mqttSettings;
   bool _isConnecting = false;
-  List<AlertNotificationItem> _items = [];
+  List<MqttItem> _items = [];
   late FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
   late final AnimationController _addButtonController;
   late final Animation<double> _addButtonFloat;
@@ -238,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _showAlert(AlertNotificationItem item, String message) {
+  void _showAlert(MqttItem item, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -268,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Future<void> _showNotification(AlertNotificationItem item, String message) async {
+  Future<void> _showNotification(MqttItem item, String message) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'mqtt_channel',
@@ -298,11 +298,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _loadItems() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final itemsJson = prefs.getStringList('alert_notification_items') ?? [];
+      final itemsJson = prefs.getStringList(mqttItemsStorageKey) ?? [];
+
       setState(() {
         _items = itemsJson
             .map((jsonStr) =>
-                AlertNotificationItem.fromJson(json.decode(jsonStr)))
+            MqttItem.fromJson(json.decode(jsonStr)))
             .toList();
       });
     } catch (e) {
@@ -313,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _editItem(AlertNotificationItem item) async {
+  void _editItem(MqttItem item) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -325,11 +326,43 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _onSettingsPressed() {
-    Navigator.push(
+  void _sendDevicePayload(MqttItem item) {
+    if (!_isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connect to MQTT broker before sending device payload.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final payload = item.payload?.trim();
+    if (payload == null || payload.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No payload configured for this device.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    _mqttService.publish(item.topic, payload);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Payload sent to ${item.title}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _onSettingsPressed() async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
+    await _loadSettings();
   }
 
   void _onAddPressed() async {
@@ -359,6 +392,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (_isConnected) {
       _mqttService.disconnect();
     } else {
+      await _loadSettings();
+
       if (_mqttSettings == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -517,25 +552,43 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             ],
                           ),
                           child: ListTile(
-                            leading: Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: item.type == ItemType.alert
-                                    ? Colors.orange.withAlpha((0.2 * 255).round())
-                                    : const Color(0xFF57C7F9)
-                                        .withAlpha((0.2 * 255).round()),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                item.type == ItemType.alert
-                                    ? Icons.warning
-                                    : Icons.notifications,
-                                color: item.type == ItemType.alert
-                                    ? Colors.orange
-                                    : const Color(0xFF57C7F9),
-                                size: 22,
-                              ),
+                            leading: Builder(
+                              builder: (context) {
+                                late final IconData itemIcon;
+                                late final Color itemColor;
+                                switch (item.type) {
+                                  case ItemType.alert:
+                                    itemIcon = Icons.warning;
+                                    itemColor = Colors.orange;
+                                    break;
+                                  case ItemType.notification:
+                                    itemIcon = Icons.notifications;
+                                    itemColor = const Color(0xFF57C7F9);
+                                    break;
+                                  case ItemType.device:
+                                    itemIcon = Icons.memory;
+                                    itemColor = const Color(0xFF57C7F9);
+                                    break;
+                                  case ItemType.sensor:
+                                    itemIcon = Icons.sensors;
+                                    itemColor = const Color(0xFF08F2B7);
+                                    break;
+                                }
+
+                                return Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: itemColor.withAlpha((0.2 * 255).round()),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    itemIcon,
+                                    color: itemColor,
+                                    size: 22,
+                                  ),
+                                );
+                              },
                             ),
                             title: Text(
                               item.title,
@@ -547,14 +600,69 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 Text('Topic: ${item.topic}'),
                                 if (item.description != null)
                                   Text('Description: ${item.description}'),
-                                Text(
-                                  item.type == ItemType.alert ? 'Alert' : 'Notification',
-                                  style: TextStyle(
-                                    color: item.type == ItemType.alert
-                                        ? Colors.orange
-                                        : const Color(0xFF57C7F9),
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Builder(
+                                  builder: (context) {
+                                    late final String typeLabel;
+                                    late final Color typeColor;
+                                    switch (item.type) {
+                                      case ItemType.alert:
+                                        typeLabel = 'Alert';
+                                        typeColor = Colors.orange;
+                                        break;
+                                      case ItemType.notification:
+                                        typeLabel = 'Notification';
+                                        typeColor = const Color(0xFF57C7F9);
+                                        break;
+                                      case ItemType.device:
+                                        typeLabel = 'Device';
+                                        typeColor = const Color(0xFF57C7F9);
+                                        break;
+                                      case ItemType.sensor:
+                                        typeLabel = 'Sensor';
+                                        typeColor = const Color(0xFF08F2B7);
+                                        break;
+                                    }
+
+                                    if (item.type == ItemType.device) {
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            typeLabel,
+                                            style: TextStyle(
+                                              color: typeColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          GestureDetector(
+                                            onTap: () => _sendDevicePayload(item),
+                                            child: Container(
+                                              width: 22,
+                                              height: 22,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF57C7F9),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.send,
+                                                size: 12,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
+
+                                    return Text(
+                                      typeLabel,
+                                      style: TextStyle(
+                                        color: typeColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
