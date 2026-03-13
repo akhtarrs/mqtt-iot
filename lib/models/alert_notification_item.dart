@@ -1,4 +1,4 @@
-enum ItemType { alert, notification }
+enum ItemType { alert, notification, device, sensor }
 
 class AlertNotificationItem {
   final String id;
