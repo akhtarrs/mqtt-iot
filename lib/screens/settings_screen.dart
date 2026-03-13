@@ -88,128 +88,212 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MQTT Settings'),
-        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // MQTT Server Section
-            Text(
-              'MQTT Server',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-
-            // Host Field
-            TextField(
-              controller: _hostController,
-              decoration: InputDecoration(
-                labelText: 'Host',
-                hintText: 'Enter MQTT broker host',
-                prefixIcon: const Icon(Icons.language),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Port Field
-            TextField(
-              controller: _portController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Port',
-                hintText: 'Enter MQTT broker port',
-                prefixIcon: const Icon(Icons.pin),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Client ID Section
-            Text(
-              'Client Information',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-
-            // Client ID Field
-            TextField(
-              controller: _clientIdController,
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Client ID',
-                hintText: 'Auto-generated',
-                prefixIcon: const Icon(Icons.assignment_ind),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Regenerate Client ID Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _regenerateClientId,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Regenerate Client ID'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveSettings,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text(
-                  'Save Settings',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-
-            // Info Section
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ℹ️ Default Settings',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFD5EDF9),
+              Color(0xFFF6FBFE),
+              Color(0xFFE8FBF5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD5EDF9), Color(0xFF57C7F9)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(height: 8),
-                  const Text('• Host: test.mosquitto.org (Public MQTT Broker)'),
-                  const Text('• Port: 1883 (Standard MQTT)'),
-                  const Text('• Client ID: Auto-generated (12 characters)'),
-                  const Text('• Security: None (for development)'),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha((0.08 * 255).round()),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MQTT Connection Settings',
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Configure broker host, port, and client identity',
+                      style: TextStyle(color: Color(0xFF334155)),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha((0.06 * 255).round()),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MQTT Server',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: const Color(0xFF0F172A),
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _hostController,
+                      decoration: InputDecoration(
+                        labelText: 'Host',
+                        hintText: 'Enter MQTT broker host',
+                        prefixIcon: const Icon(Icons.language),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FBFE),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _portController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Port',
+                        hintText: 'Enter MQTT broker port',
+                        prefixIcon: const Icon(Icons.pin),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FBFE),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Client Information',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: const Color(0xFF0F172A),
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _clientIdController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Client ID',
+                        hintText: 'Auto-generated',
+                        prefixIcon: const Icon(Icons.assignment_ind),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FBFE),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _regenerateClientId,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Regenerate Client ID'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveSettings,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF57C7F9),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          'Save Settings',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF57C7F9).withAlpha((0.3 * 255).round()),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha((0.05 * 255).round()),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Default Settings',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: const Color(0xFF0F172A),
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('• Host: test.mosquitto.org (Public MQTT Broker)'),
+                    const Text('• Port: 1883 (Standard MQTT)'),
+                    const Text('• Client ID: Auto-generated (12 characters)'),
+                    const Text('• Security: None (for development)'),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
