@@ -19,10 +19,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _generatedClientId = _generateClientId();
     _hostController = TextEditingController(text: 'test.mosquitto.org');
     _portController = TextEditingController(text: '1883');
-    _clientIdController = TextEditingController(text: _generatedClientId);
+    _clientIdController = TextEditingController();
+    _loadSavedSettings();
   }
 
   @override
@@ -37,6 +37,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
     return List.generate(12, (index) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  Future<void> _loadSavedSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      final settingsString = prefs.getString('mqtt_settings');
+
+      if (settingsString != null && settingsString.isNotEmpty) {
+        final parts = settingsString.split('|');
+        if (parts.length == 3) {
+          _hostController.text = parts[0];
+          _portController.text = parts[1];
+          _clientIdController.text = parts[2];
+          _generatedClientId = parts[2];
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading settings: $e');
+    }
+
+    final generated = _generateClientId();
+    _hostController.text = 'test.mosquitto.org';
+    _portController.text = '1883';
+    _clientIdController.text = generated;
+    _generatedClientId = generated;
   }
 
   void _regenerateClientId() {
